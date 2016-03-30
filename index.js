@@ -170,7 +170,7 @@ var readOrWrite = function(file, args, boolValue) {
     value = args[0];
     callback = args[1];
   }
-  if (boolValue) {
+  if (boolValue && typeof value !== 'undefined') {
     value = value ? 1 : 0;
   }
   var promise;
