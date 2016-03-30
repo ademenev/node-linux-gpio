@@ -13,6 +13,8 @@ Note that a process writing to /sys filesystem should run with super user privil
 
 ### Basic setup
 
+#### Classical blinker example
+
 ```js
 var gpio = require('linux-gpio');
 
@@ -23,8 +25,18 @@ gpio.export(266, {direction: gpio.DIR_OUT}, function(err, pin) {
     pin.set(function() {
       if (err) {
         console.error(err);
+      } else {
+        var count = 20;
+        var interval = setInterval(function() {
+          pin.toggle(function(err) {
+            count--;
+            if (err || !count) {
+              clearInterval(interval);
+        	    gpio.close();
+            }
+          });
+        }, 1000);
       }
-      gpio.close();
     });
   }
 });
