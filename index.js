@@ -85,7 +85,7 @@ Pin.prototype.unexport = function(callback) {
     }
     delete byPin[self.pin];
     self.fd = null;
-    self.off('interrupt');
+    self.removeAllListeners();
     fs.stat(file, function(err, stat) {
       if (err) {
         reject(err);
