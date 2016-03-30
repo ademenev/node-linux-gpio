@@ -1,0 +1,34 @@
+{
+  "name": "linux-gpio",
+  "version": "0.0.1",
+  "description": "Access GPIO on Linux from nodejs using /sys filesystem",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ademenev/node-linux-gpio.git"
+  },
+  "keywords": [
+    "linux",
+    "gpio",
+    "rpi",
+    "cubieboard"
+  ],
+  "author": {
+    "name": "Andrey Demenev",
+    "email": "demenev@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ademenev/node-linux-gpio/issues"
+  },
+  "dependencies": {
+    "bluebird": "^3.3.4",
+    "epoll": "^0.1.17"
+  }
+}
