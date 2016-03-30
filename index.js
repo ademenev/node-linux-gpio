@@ -123,11 +123,16 @@ Pin.prototype.value = function(callback) {
 };
 
 Pin.prototype.set = function(value, callback) {
+  if (arguments.length == 1 && typeof value == 'function') {
+    callback = value;
+    value = undefined;
+  }
   var file = basePath + 'gpio' + this.pin + '/value';
   var promise = new Promise(function(fulfill, reject) {
     if (typeof value === 'undefined') {
       value = 1;
     }
+    value = value ? 1 : 0;
     fs.writeFile(file, value, function(err) {
       if (err) {
         reject(err);
@@ -140,7 +145,7 @@ Pin.prototype.set = function(value, callback) {
 };
 
 Pin.prototype.reset = function(callback) {
-  return promiseOrCallback(this, this.set(0), callback);
+  return this.set(0, callback);
 };
 
 Pin.prototype.toggle = function(callback) {
