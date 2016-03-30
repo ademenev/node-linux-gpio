@@ -32,7 +32,7 @@ gpio.export(266, {direction: gpio.DIR_OUT}, function(err, pin) {
             count--;
             if (err || !count) {
               clearInterval(interval);
-        	    gpio.close();
+              gpio.close();
             }
           });
         }, 1000);
