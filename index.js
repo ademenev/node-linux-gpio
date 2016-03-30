@@ -14,12 +14,12 @@ var promiseOrCallback = function(thiz, promise, callback) {
   if (typeof callback !== 'function') {
     return promise;
   }
-  promise.then(function() {
+  promise.catch(function(e) {
+    callback.apply(thiz, [e]);
+  }).then(function() {
     var args = Array.prototype.slice.call(arguments);
     args.unshift(null);
     callback.apply(thiz, args);
-  }).catch(function(e) {
-    callback.apply(thiz, [e]);
   });
 }
 
@@ -296,7 +296,7 @@ var close = function() {
   poller.close();
   for (var pinNumber in byPin) {
     var pin = byPin[pinNumber];
-    pin.off('interrupt');
+    pin.removeAllListeners();
     if (pin.fd) {
       fs.close(pin.fd);
       pin.fd = null;
