@@ -72,8 +72,9 @@ gpio.export(266, {direction: gpio.DIR_OUT})
 
 ### Expoting GPIO pin
 
-Before using a GPIO pin, it must be first exported by writing pin number to `/sys/class/gpio/export`. This creates `/sys/class/gpioXXX/`
-directory with some files inside used to control the pin. Use `gpio.export()` function:
+Before using a GPIO pin, it must be first exported by writing pin number to `/sys/class/gpio/export`. 
+This creates `/sys/class/gpioXXX/` directory with some files inside used to control the pin. 
+Use `gpio.export()` function:
 
 ```js
 var gpio = require('linux-gpio');
@@ -83,4 +84,243 @@ gpio.export(266, {direction: gpio.DIR_OUT}, function(err, pin) {
   gpio.close();
 });
 ```
+
 #### Specifying options
+
+Second argument to `export()` is an object used to specify options such as pin I/O direction, interrupt mode and invert mode.
+All keys are optional. If a key is not specified, corresponding option is not changed
+
+```js
+{
+  "direction": gpio.DIR_OUT, // gpio.DIR_OUT, gpio.DIR_IN
+  "invert": false, // true/false
+  "edge": gpio.EDGE_RISING // gpio.EDGE_NONE, gpio.EDGE_RISING, gpio.EDGE_FALLING, gpio.EDGE_BOTH
+}
+```
+
+See below for details about each option
+
+### Stopping event loop
+
+After you are done with GPIO, call `close()` to stop event loop used for interrupt handling. Otherwise, your program will not exit when you expect it to do so
+
+### Changing pin direction
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.direction(gpio.DIR_OUT, function(err) {
+    console.log("Pin %d configured as output", pin.pin);
+    pin.direction(gpio.DIR_IN, function(err) {
+      console.log("Pin %d configured as input", pin.pin);
+      gpio.close();
+    });
+  });
+});
+```
+
+Use `gpio.DIR_OUT` for output, `gpio.DIR_IN` for input
+
+I/O direction can also be specified using `direction` option for `gpio.export()` call.
+
+### Reading pin direction
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.direction(function(err, dir) {
+    console.log("Pin %d configured as %s", pin.pin, dir);
+    gpio.close();
+  });
+});
+```
+
+### Changing pin invert mode
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+    pin.invert(true, function(err) {
+    console.log("Pin %d is in inverted mode", pin.pin);
+    pin.invert(false, function(err) {
+      console.log("Pin %d is in non-inverted mode", pin.pin);
+      gpio.close();
+    });
+  });
+});
+```
+
+Inverted mode can also be specified using `invert` option for `gpio.export()` call.
+
+### Reading pin invert mode
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.invert(function(err, inv) {
+    console.log("Pin %d inverted mode:", pin.pin, inv);
+    gpio.close();
+  });
+});
+```
+
+### Reading pin state
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.value(function(err, state) {
+    console.log("Pin %d state:", pin.pin, state);
+    gpio.close();
+  });
+});
+```
+
+### Changing pin state
+
+#### Set to high
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.set(function(err) {
+    console.log("Pin %d set to high", pin.pin);
+    gpio.close();
+  });
+});
+```
+
+or
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.set(1, function(err) {
+    console.log("Pin %d set to high", pin.pin);
+    gpio.close();
+  });
+});
+```
+#### Set to low
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.reset(function(err) {
+    console.log("Pin %d set to low", pin.pin);
+    gpio.close();
+  });
+});
+```
+
+or
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.set(0, function(err) {
+    console.log("Pin %d set to low", pin.pin);
+    gpio.close();
+  });
+});
+```
+
+#### Toggling pin state
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.toggle(function(err, prev) {
+    console.log("Pin %d toggled, previous state was %d", pin.pin, prev);
+    gpio.close();
+  });
+});
+```
+
+### Interrupts
+
+#### Setting interrupt mode
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {direction: gpio.DIR_IN}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.edge(gpio.EDGE_BOTH, function(err) {
+    console.log("Pin %d interrupt mode set to \"both\"", pin.pin);
+    gpio.close();
+  });
+});
+```
+
+Use one of `gpio.EDGE_NONE`, `gpio.EDGE_RISING`, `gpio.EDGE_FALLING` and `gpio.EDGE_BOTH`. `gpio.EDGE_NONE` disables interrupt.
+
+Interrupt mode can also be specified using `edge` option for `gpio.export()` call.
+
+Interrupt mode can be only specified for pins configured as inputs. Not all GPIO pins can generate interrupts, even if configured as input. Refer to yor system's documentation to find out which pins are interrupt-enabled.
+
+#### Reading interrupt mode
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {direction: gpio.DIR_IN}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.edge(function(err, edge) {
+    console.log("Pin %d interrupt mode is \"%s\"", pin.pin, edge);
+    gpio.close();
+  });
+});
+```
+
+#### Reacting to interrupts
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {direction: gpio.DIR_IN}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.edge(gpio.EDGE_BOTH, function(err) {
+    console.log("Pin %d interrupt mode set to \"both\"", pin.pin);
+    pin.on('interrupt', function() {
+      console.log('interrupt');
+    });
+    setTimeout(gpio.close, 5000);
+  });
+});
+```
+
+### Unexporting a pin
+
+Unexporting a pin removes corresponding directory from /sys filesystem, and removes event handlers.
+
+```js
+var gpio = require('linux-gpio');
+
+gpio.export(266, {direction: gpio.DIR_IN}, function(err, pin) {
+  console.log("Exported pin %d", pin.pin);
+  pin.unexport(function(err) {
+    console.log("Pin %d unexported", pin.pin);
+    gpio.close();
+  });
+});
+```
