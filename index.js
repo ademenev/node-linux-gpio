@@ -85,6 +85,7 @@ Pin.prototype.unexport = function(callback) {
     }
     delete byPin[self.pin];
     self.fd = null;
+    self.off('interrupt');
     fs.stat(file, function(err, stat) {
       if (err) {
         reject(err);
@@ -295,6 +296,7 @@ var close = function() {
   poller.close();
   for (var pinNumber in byPin) {
     var pin = byPin[pinNumber];
+    pin.off('interrupt');
     if (pin.fd) {
       fs.close(pin.fd);
       pin.fd = null;
