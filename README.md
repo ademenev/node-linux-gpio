@@ -65,7 +65,8 @@ gpio.export(266, {direction: gpio.DIR_OUT}, function(err, pin) {
 ```
 
 To use promises, omit the last callback argument – and a promise will be returned.
-[bluebird](https://github.com/petkaantonov/bluebird) is used for promises.
+By default, [bluebird](https://github.com/petkaantonov/bluebird) is used for promises.
+See below for information about using other promise implementations
 
 ```js
 var gpio = require('linux-gpio');
@@ -336,3 +337,48 @@ gpio.export(266, {direction: gpio.DIR_IN}, function(err, pin) {
   });
 });
 ```
+
+### Using other promise libraries
+
+If you prefer other promise library to bluebird, you have to configure node-linux-gpio first.
+
+Simpliest form (using [Q](https://github.com/kriskowal/q) as example):
+
+```js
+var gpio = require('linux-gpio');
+var Q = require('q');
+
+gpio.usePromise(Q.Promise);
+```
+
+Just pass promise constructor or function returning a new promise to `usePromise`.
+
+Promises are expected to support `then`, `catch`, and `finally` methods. If your (hypotetical) promise library uses other method names, do the following:
+
+```js
+var gpio = require('linux-gpio');
+var Q = require('q');
+
+/* Q supports legacy fail() and fin() methods */
+gpio.usePromise({
+  func: Q.Promise,
+  then: 'then',
+  'catch': 'fail',
+  'finally' : 'fin'
+});
+```
+
+and then you can do
+
+```js
+gpio.export(266, {direction: gpio.DIR_OUT})
+  .then(function(pin) {
+    console.log("Exported pin %d", pin.pin);
+  })
+  .fail(function(err) {
+    console.error(err);
+  })
+  .fin(function() {
+    gpio.close();
+  });
+  ```

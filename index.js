@@ -1,22 +1,27 @@
 // vim: set ts=2 sw=2 et ai si :
 
 var Epoll = require('epoll').Epoll;
-var Promise = require('bluebird');
 var fs = require('fs');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+
+var Promise = require('bluebird');
+var _finally = 'finally';
+var _catch = 'catch';
+var _then = 'then';
 
 var basePath = '/sys/class/gpio/';
 var byPin = {};
 var byFD = {};
 
+
 var promiseOrCallback = function(thiz, promise, callback) {
   if (typeof callback !== 'function') {
     return promise;
   }
-  promise.catch(function(e) {
+  promise[_catch](function(e) {
     callback.apply(thiz, [e]);
-  }).then(function() {
+  })[_then](function() {
     var args = Array.prototype.slice.call(arguments);
     args.unshift(null);
     callback.apply(thiz, args);
@@ -152,8 +157,8 @@ Pin.prototype.reset = function(callback) {
 Pin.prototype.toggle = function(callback) {
   var file = basePath + 'gpio' + this.pin + '/value';
   var self = this;
-  var promise = self.value().then(function(val) {
-    return self.set(val ? 0 : 1).then(function() {
+  var promise = self.value()[_then](function(val) {
+    return self.set(val ? 0 : 1)[_then](function() {
       return val;
     });
   });
@@ -271,22 +276,22 @@ var _export = function(pin, options, callback) {
     });
   });
   var thePin;
-  var ret = promise.then(function(p) {
+  var ret = promise[_then](function(p) {
     thePin = p;
     if (typeof options.direction !== 'undefined') {
       return thePin.direction(options.direction);
     }
-  }).then(function() {
+  })[_then](function() {
     if (typeof options.invert !== 'undefined') {
       return thePin.invert(options.invert);
     }
-  }).then(function() {
+  })[_then](function() {
     if (typeof options.edge !== 'undefined') {
       return thePin.edge(options.edge);
     }
-  }).then(function() {
+  })[_then](function() {
     return watchPin(thePin);
-  }).then(function() {
+  })[_then](function() {
     return thePin;
   });
   return promiseOrCallback(this, ret, callback);
@@ -306,9 +311,26 @@ var close = function() {
   byFD = {};
 };
 
+var usePromise = function(config) {
+  if (typeof config === 'function') {
+    config = {func: config};
+  }
+  if (typeof config !== 'object') {
+    return;
+  }
+  if (typeof config.func !== 'function') {
+    return;
+  }
+  Promise = config.func;
+  _then = config.then || 'then';
+  _catch = config.catch || 'catch';
+  _finally = config.finally || 'finally';
+};
+
 module.exports = {
   export: _export,
   close: close,
+  usePromise: usePromise,
   DIR_IN : 'in',
   DIR_OUT : 'out',
   EDGE_NONE: 'none',
