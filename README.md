@@ -83,7 +83,7 @@ gpio.export(266, {direction: gpio.DIR_OUT})
   });
 ```
 
-### Expoting GPIO pin
+### Exporting GPIO pin
 
 Before using a GPIO pin, it must be first exported by writing pin number to `/sys/class/gpio/export`. 
 This creates `/sys/class/gpioXXX/` directory with some files inside used to control the pin. 
