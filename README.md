@@ -22,7 +22,7 @@ gpio.export(266, {direction: gpio.DIR_OUT}, function(err, pin) {
   if (err) {
     console.error(err);
   } else {
-    pin.set(function() {
+    pin.set(function(err) {
       if (err) {
         console.error(err);
       } else {
